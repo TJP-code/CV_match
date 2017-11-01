@@ -1,6 +1,6 @@
 
 
-function  voltages = voltagesweep(num_channels, waveform_start, waveform_peak)
+function  voltages = voltagesweep(no_of_channels, waveform_start, waveform_peak)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Function to generate list of volatges for the triangular waveform during FCV [Tarheel]
 % This function will become redundant when Tarheel header data is accessible
@@ -15,7 +15,7 @@ if nargin < 1; error('Error: Specify number of channels'); end;
 if nargin < 2; waveform_start = -.4; waveform_peak = 1.3;; end;
 
 %Calculate 
-num_points = 1000/num_channels;
+num_points = 1000/no_of_channels;
 start = -.4;
 peak = 1.3;
 peak - start;

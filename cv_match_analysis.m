@@ -53,7 +53,7 @@ ts = [0:0.1:length(fcv_IT)/10-0.1];
 
 %if plot, plot tarheel style data for example
 if params.plotfig
-    [h] = visualise_fcv_data(fcv_data, ts, params, cv_match, ph_match, TTLs);
+    [h] = visualise_fcv_data(fcv_data, ts, params, cv_match, TTLs);
 end
 
 shifted_cv = fcv_CV;
