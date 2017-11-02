@@ -8,12 +8,13 @@ bg_params.filt_freq = 2000; %we found 2000Hz for 2 channel data gave a smoother 
 bg_params.sample_freq = 58820; 
 
 cv_params.cv_match_template = 'C:\Users\mpanagi\Documents\GitHub\fcv_data_processing\chemoset\cvmatrix2.txt';
-cv_params.shiftpeak = 0;
+cv_params.shiftpeak = 1;
 cv_params.plotfig = 1;
 cv_params.colormap_type = 'fcv';
 cv_params.scan_number = 140;
 cv_params.point_number = 170;
 cv_params.bg = 95;
+
 %--------------------------------------------------------------
 
 no_of_channels = 2;
@@ -73,7 +74,7 @@ for i = 1:length(processed_data)
 
     [C_predicted{i}, Q{i}, Q_cutoff{i}, model_cvs{i}, residuals{i}] = apply_pcr(processed_data{i}, Vc, F, Qcrit);
     
-    [RHO, r_sqr] = cv_match_analysis(processed_data{i}, cv_params, cut_TTLs{i}(:,[2 3 params.target_bit]));
+    [RHO, r_sqr, h] = cv_match_analysis(processed_data{i}, cv_params, cut_TTLs{i});
     
     figure
     subplot(2,2,1)
