@@ -62,4 +62,6 @@ for i = 1:length(cut_ch0_data)
 end
 
 
-[RHO, r_sqr, h] = cv_match_analysis_mpEdit(processed_data{2}, cv_params, cut_TTLs{2});
+% [RHO, r_sqr, h] = cv_match_analysis_mpEdit(processed_data{2}, cv_params, cut_TTLs{2});
+
+[cv_matches] = auto_cv_match(processed_data{2}, params, cv_params, TTLs)

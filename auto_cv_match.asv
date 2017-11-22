@@ -11,7 +11,7 @@ all_roh = [];
 all_bg_scan = [];
 
 number_of_samples = size(tarheel_data,2);
-cv_match = params2.cv_match_template;
+% load(params2.cv_match_template);
 samples = [1:number_of_samples]';
 bg_template = ones(number_of_samples,1);
 RHO = zeros(number_of_samples,size(cv_match,2));
