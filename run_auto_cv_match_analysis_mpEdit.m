@@ -1,6 +1,6 @@
 clear
 close all
-datapath = 'C:\Users\mpanagi\Documents\GitHub\CV_match\test data\GLRA56.2a_06_DrugPeriod\';
+datapath = 'C:\Users\mpanagi\Documents\GitHub\fcv_data_processing\test data\46_20170208_02 - Variable reward post\';
 
 %%
 %Define templates for analyte of interest - n.b. only 1 analyte at a time, repeat cv match separately for additional analytes
@@ -31,30 +31,30 @@ no_of_channels = 1;
 [TTL_data.start, TTL_data.end] = extract_TTL_times(TTLs);
 TTL_data.TTLs = TTLs;
 
+cut_TTLs{1} = TTLs;
+cut_ch0_data{1} = ch0_fcv_data;
+cut_ch1_data{1} = ch1_fcv_data;
+
 params.include.bits = []; %include target_bit
 params.include.buffer = []; %time(s) before target,time after target
 params.exclude.bits = [];
 params.exclude.buffer = [];
-params.target_bit = [];
-params.target_location = [0]; %0 = start, 1 = end, 0.5 = middle
-params.ignore_repeats = []; %no of seconds to ignore repeats
+params.target_bit = 9;
+params.target_location = 0; %0 = start, 1 = end, 0.5 = middle
+params.ignore_repeats = [10]; %no of seconds to ignore repeats
 params.sample_rate = 10;
-params.time_align = [5];
+params.time_align = [10 30];
 params.bg_pos = -2; %seconds relative to target_location
 
 
 exclude_list = [4]; %not implemented yet
 bg_adjustments = [5 -.5]; %not implemented yet
 
-cut_ch0_data{1} = ch0_fcv_data;
-cut_ch1_data{1} = ch1_fcv_data; 
-cut_TTLs{1} = TTLs;
-
-% [cut_ch0_data, cut_ch0_points, cut_TTLs] = cut_fcv_data(ch0_fcv_data, TTL_data, params);
-% [cut_ch1_data, cut_ch1_points, ~] = cut_fcv_data(ch1_fcv_data, TTL_data, params); 
+[cut_ch0_data, cut_ch0_points, cut_TTLs] = cut_fcv_data(ch0_fcv_data, TTL_data, params);
+[cut_ch1_data, cut_ch1_points, ~] = cut_fcv_data(ch1_fcv_data, TTL_data, params); 
 
 %set bg
-bg_pos = ones(length(cut_ch0_data),1);
+bg_pos = ones(length(cut _ch0_data),1);
 bg_pos = bg_pos*((params.time_align(1)+params.bg_pos)*params.sample_rate);
 
 %%bg subtract/plot
@@ -65,6 +65,6 @@ for i = 1:length(cut_ch0_data)
 end
 
 
-[RHO, r_sqr, h] = cv_match_analysis_mpEdit(processed_data{1}, cv_params, cut_TTLs{1});
+% [RHO, r_sqr, h] = cv_match_analysis_mpEdit(processed_data{2}, cv_params, cut_TTLs{2});
 
-%[cv_matches] = auto_cv_match(ch0_fcv_data, params, cv_params, TTLs)
+[cv_matches] = auto_cv_match(processed_data{2}, params, cv_params, TTLs)
