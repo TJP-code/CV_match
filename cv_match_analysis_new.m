@@ -1,9 +1,12 @@
 function [RHO_shift, r_sqr_shift, h] = cv_match_analysis_new(fcv_data, params, TTLs)
+%function [RHO_shift, r_sqr_shift, h] = cv_match_analysis_new(fcv_data, params, TTLs)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %CV_MATCH_ANALYSIS
 %   Function to perform CV matching (correlation, pearson by default)between
-%   FCV data and a supplied set of model CVs. %Provides the correlation coefficient
+%   FCV data and a supplied set of model CVs. Provides the correlation coefficient
 %   and r² value between templates and data CV at each time point
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
 % Inputs -
 %           fcv_data - variable containing data CVs such that [r,c] rows = CV scan point,
 %           params - data frame containing parameters [see below]
@@ -25,6 +28,7 @@ function [RHO_shift, r_sqr_shift, h] = cv_match_analysis_new(fcv_data, params, T
 %         .shiftV_max = 0.8;    %%For peak shift matching, sets upper bound Voltage of waveform for where the peak of the wave form should be.
 %         .shiftV_ascending = 1;%%For peak shift matching, deinfes whether the min/max Voltage bounds are on the ascending or descending part of the applied waveform
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %check inputs
 if nargin < 1; error('Need FCV data'); end;
 if nargin < 2; params = []; end;
@@ -61,18 +65,18 @@ end
 if ~isfield(params,'shiftV_ascending') || isempty(params.shiftV_ascending)
     params.shiftV_ascending = 1;
 end
-%% Pull out fcv data at specified scan number/point for plotting and analysis
+% Pull out fcv data at specified scan number/point for plotting and analysis
 cv_match = params.cv_match_template;
 fcv_IT = fcv_data(params.point_number,:);
 fcv_CV = fcv_data(:,params.scan_number);
 ts = [0:0.1:length(fcv_IT)/10-0.1];
 
-%% if .plotfig = 1, plot tarheel style data for example
+% if .plotfig = 1, plot tarheel style data for example
 if params.plotfig
     [h] = visualise_fcv_data(fcv_data, ts, params, TTLs, cv_match, []);
 end
 
-%% if .shiftpeak = 1, allow cv match to shift the peak of the data CV to match the template cv
+% if .shiftpeak = 1, allow cv match to shift the peak of the data CV to match the template cv
 %This is where hardcoding needs to be fixed
 
 
