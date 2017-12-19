@@ -6,10 +6,8 @@ datapath = 'C:\Users\mpanagi\Documents\GitHub\fcv_data_processing\test data\46_2
 %Define templates for analyte of interest - n.b. only 1 analyte at a time, repeat cv match separately for additional analytes
 CV_templates = dlmread('C:\Users\mpanagi\Documents\GitHub\fcv_data_processing\chemoset\cvmatrix1.txt');
 
-%hardcoded for default cv template, should make a new da only
-%template - ignore this line if you're using another template
-CV_templates = CV_templates(:,1:7);
 
+CV_templates = CV_templates(:,1:7);
 %cv match params
 bg_params.filt_freq = 4000; %we found 2000Hz for 2 channel data gave a smoother CV
 bg_params.sample_freq = 58820; 
@@ -71,4 +69,4 @@ end
 
 % [RHO, r_sqr, h] = cv_match_analysis_mpEdit(processed_data{2}, cv_params, cut_TTLs{2});
 
-[cv_matches] = auto_cv_match(processed_data{2}, params, cv_params, TTLs);
+[cv_matches] = auto_cv_match(processed_data{2}, params, cv_params, TTLs)
