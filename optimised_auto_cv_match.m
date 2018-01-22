@@ -4,9 +4,9 @@ if nargin < 4
     TTLs = [];
 end
 if nargin < 4 || isempty(bg_scan_dist)
-    multiscan = 1;
+    multiscan = 1; %multiscan is default i.e. compare every combination of  bg and scan
     bg_scan_dist = 0;
-elseif ~isempty(bg_scan_dist)
+elseif ~isempty(bg_scan_dist) %if you provide a bg_scan_dist i.e. regular distance for bg and scan, then only those are considered
     multiscan = 0;
 end
 if nargin < 6
@@ -28,7 +28,7 @@ load(params2.cv_match_template);
 samples = [1:number_of_samples]';
 bg_template = ones(number_of_samples,1);
 RHO = zeros(number_of_samples,size(cv_match,2));
-tic
+
 if params.prog_bar
     cv_progressbar(0, 0)
 end
@@ -43,15 +43,13 @@ for i = 1:last_sample
         cv_progressbar(i/last_sample,0);
     end
     params.bg_pos = i;
-    %params2.bg = i;
-    tic    
+    
+    %calc this background and subtrack from processed data
     new_bg_avg = mean(processed_data(:,i:i+params.bg_size),2);
     for k = 1:size(processed_data,2)
         new_subbed_data(:,k) = processed_data(:,k) - new_bg_avg;
     end
-    t_processing(i) = toc;
     fcv_CV = new_subbed_data;
-    tic
     %run on subset of file or whole file
     if ~isempty(timeinterval)
         for j = timeinterval(1):timeinterval(2)
@@ -60,19 +58,12 @@ for i = 1:last_sample
         %NOT CORRECT: FIX THIS bit \/
         all_bg_scan = [all_bg_scan;(i*bg_template),samples];
     elseif multiscan
-        t_iftime(i) = toc;
-        tic
         for j = 1:number_of_samples
             RHO(j,:) = corr(fcv_CV(:,j),cv_match);
         end
-        t_looptime(i) = toc;
-        tic
         all_bg_scan = [all_bg_scan;(i*bg_template),samples];
-        t_loopaftertime1(i) = toc;
-        tic
+        
         cv_vals{i} = fcv_CV;
-        t_loopaftertime2(i) = toc;
-        tic
     else
         RHO = corr(fcv_CV(:,i+bg_scan_dist),cv_match);
         all_bg_scan = [all_bg_scan;[i,i+bg_scan_dist]];
@@ -82,7 +73,6 @@ for i = 1:last_sample
     
 end
 
-timetaken = toc;
 %          |
 %          | 
 %make this V a separate function
