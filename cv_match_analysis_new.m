@@ -17,7 +17,7 @@ function [RHO_shift, r_sqr_shift, h] = cv_match_analysis_new(fcv_data, params, T
 %           h -
 %
 % params data frame -
-%         .cv_match_template = 'C:\Users\mpanagi\Documents\GitHub\fcv_data_processing\chemoset\cvmatrix2.txt';
+%         .cv_match_template = example cv(s) in columns which the function will match fcv_data against.
 %         .shiftpeak = 1;           %%if .shiftpeak = 1, allow cv match to shift the peak of the data CV to match the template cv
 %         .plotfig = 1;            %%if .plotfig = 1, plot tarheel style data for example
 %         .colormap_type = 'fcv';
