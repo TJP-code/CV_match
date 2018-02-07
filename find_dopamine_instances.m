@@ -1,4 +1,4 @@
-function [cv_matches,match_matrix] = find_dopamine_instances(all_roh,all_bg_scan, TTL)
+function [da_instance, da_bg_scan] = find_dopamine_instances(all_roh, all_bg_scan, threshold)
 
 if nargin < 4
     TTL = [];
@@ -8,29 +8,135 @@ index = sign(all_roh);
 r_sqr = all_roh.^2;
 all_rsq = r_sqr.*index;
 
-%find col of r_sqr values > 0.75
-index = find(all_rsq >= 0.75);
-col = ceil(index/size(all_rsq,1));
-row = index-((col-1)*size(all_rsq,1));
+%old method
+%cv_matches_sig = find_rsqr_vals(all_rsq, all_bg_scan, TTL, threshold.cons);
 
-all_bg_scan_pass = all_bg_scan(row,:);
-da_rsq_top = all_rsq(row,:);
+match_matrix = rsqr_landscape(all_rsq, all_bg_scan);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% For each time that passes conservative threshold
+% 1) does it have a smoothed value greater than liberal threshold 
+% (is it surrounded by other high rsqr val neighbours and therefore not noise)
+% 2) is it part of an "instance" of dopamine
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+[d1_landscape, bg] = max(match_matrix);
+smoothed_landscape = smooth(d1_landscape,threshold.smoothing);
+peaks = (smoothed_landscape >= threshold.lib);
+peak_shifted = [0;[peaks(1:(length(peaks)-1))]];
+peak_diff = peaks-peak_shifted;
+peak_start = find(peak_diff == 1);
+peak_end = find(peak_diff == -1);
+peak_start_temp = peak_start-1;
+peak_start_temp(peak_start_temp < 1) = 1;
+peak_end_temp = peak_end;
+%for each "dopamine event"
+for k = 1:length(peak_start)-1
+    
+    %if event is near others merge
+    if peak_start(k+1)-peak_end(k) < 5
+        peak_start_temp(k+1) = -1;
+        peak_end_temp(k) = -1;
+    end
+     
+end
+peak_start_temp(peak_start_temp==-1) = [];
+peak_end_temp(peak_end_temp==-1) = [];
+
+for j = 1:length(peak_start_temp)
+    
+    da(j,1) = peak_start_temp(j);
+    da(j,2) = peak_end_temp(j);
+    [peak_val,val_index] = max(d1_landscape(peak_start_temp(j):peak_end_temp(j)));  
+    if peak_val > threshold.cons
+        da(j,3) = peak_val;
+        da(j,4) = da(j,1)+val_index-1;
+        da(j,5) = bg(da(j,4));
+    else
+        da(j,3) = -1;
+    end
+end
+
+da((da(:,3)==-1),:) = [];
+da_bg_scan = da(:, [5,4]);
+da_instance = da(:,1:3);
+%debugging
+visualise_landscape = 1;
+if visualise_landscape
+    
+    figure    
+    subplot(2,1,1)
+    hold on
+    plot(d1_landscape,'k-o')
+    plot(threshold.cons*ones(size(match_matrix,2)),'r')
+    
+    plot(peak_start_temp,d1_landscape(peak_start_temp),'go')
+    plot(peak_end_temp,d1_landscape(peak_end_temp),'rx')
+    plot(da(:,4), da(:,3),'bo')
+    subplot(2,1,2)
+    hold on
+    plot(smoothed_landscape,'k-o')
+    plot(threshold.lib*ones(size(match_matrix,2)),'r')
+    plot(peak_start_temp,smoothed_landscape(peak_start_temp),'go')
+    plot(peak_end_temp,smoothed_landscape(peak_end_temp),'rx')
+    plot(da(:,4), smoothed_landscape(da(:,4)),'bo')
+
+    figure
+    match_matrix(match_matrix < 0) = 0;
+    imagesc(rot90(match_matrix));
+    colorbar
+end
+
+
+
+function cv_matches = find_rsqr_vals(rsq, bg_scan, TTL, rsq_val)
+
+%find col of r_sqr values > rsq_val
+index = find(rsq >= rsq_val);
+col = ceil(index/size(rsq,1));
+row = index-((col-1)*size(rsq,1));
+
+all_bg_scan_pass = bg_scan(row,:);
+da_rsq_top = rsq(row,:);
 da_rsq_top_top = max(da_rsq_top,[],2);
 all_bg_scan_pass(:,3) = da_rsq_top_top;
 cv_matches = [all_bg_scan_pass];
 if ~isempty(TTL)
-    ttl_on = sum(TTLs(all_bg_scan_pass(:,2),:),2);
+    ttl_on = sum(TTL(all_bg_scan_pass(:,2),:),2);
     cv_matches = [cv_matches,ttl_on];
 end
 
-match_matrix = zeros(max(max(all_bg_scan_pass)));
-linearInd = sub2ind(size(match_matrix), cv_matches(:,1), cv_matches(:,2));
-match_matrix(linearInd) = 1;
-figure;imagesc(rot90(match_matrix))
-rowsum = sum(match_matrix,1);
-figure;plot(smooth(rowsum,10))
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% plot passing rsqr vals
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-colsum = sum(match_matrix,2);
-figure;plot(smooth(colsum,10),'r')
+% match_matrix = zeros(max(max(bg_scan)));
+% linearInd = sub2ind(size(match_matrix), cv_matches(:,1), cv_matches(:,2));
+% match_matrix(linearInd) = 1;
+% figure;imagesc(rot90(match_matrix))
+% rowsum = sum(match_matrix,1);
+% figure;plot(smooth(rowsum,10))
+% 
+% colsum = sum(match_matrix,2);
+% figure;plot(smooth(colsum,10),'r')
 
 
+function match_matrix = rsqr_landscape(rsq, bg_scan)
+
+if ismatrix(rsq)
+    %get best rsqr for each bg/scan combination
+    rsq = max(rsq');
+end
+
+match_matrix = (zeros(max(max(bg_scan))))-1;
+
+%for each scan/bg combination
+for i = 1:length(rsq)
+    if match_matrix(bg_scan(i,1), bg_scan(i,2)) < rsq(i)
+        match_matrix(bg_scan(i,1), bg_scan(i,2)) = rsq(i);
+    end
+end
+
+%match_matrix(match_matrix < 0) = 0;

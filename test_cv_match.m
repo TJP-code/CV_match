@@ -15,14 +15,24 @@ cv_template = cvmatch.cv_match;
  
 [all_roh,all_bg_scan,cv_vals] = optimised_auto_cv_match(ch0_fcv_data, params, cv_template(:,1:7));
 
-cv_matches = find_dopamine_instances(all_roh,all_bg_scan, TTL);
+threshold.cons = 0.75;
+threshold.lib = 0.7;
+threshold.smoothing = 5;
+ts = [0:0.1:size(cv_vals{1},1)-0.1];
+
+[da_instance, da_bg_scan] = find_dopamine_instances(all_roh, all_bg_scan, threshold);
 
 
 match_params.cv_match_template = cv_template;
-match_params.shiftpeak = 1;
+match_params.shiftpeak = 0;
 match_params.plotfig = 1;  
 match_params.colormap_type = 'fcv';
-match_params.scan_number = 100;
 match_params.point_number = 150;
-match_params.bg = 50;
-[RHO_shift, r_sqr_shift, h] = cv_match_analysis_new(cv_vals{50}, match_params, TTL);
+
+for i = 1:length(da_instance)
+    match_params.bg = da_bg_scan(i, 1);
+    match_params.scan_number = da_bg_scan(i, 2);
+
+    cv_match_analysis_new(cv_vals{match_params.bg}, match_params, TTL);
+
+end
