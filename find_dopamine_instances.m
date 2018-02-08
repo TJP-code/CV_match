@@ -1,7 +1,30 @@
-function [da_instance, da_bg_scan] = find_dopamine_instances(all_roh, all_bg_scan, threshold)
+function [da_instance, da_bg_scan] = find_dopamine_instances(all_roh, all_bg_scan, threshold, visualise_matches)
+%function [da_instance, da_bg_scan] = find_dopamine_instances(all_roh, all_bg_scan, threshold, visualise_matches)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% find_dopamine_instances processes data output from auto_cv_match, finding "instances of dopamine" sustained 
+% epochs of data where cv's match a template. The function creates an rsqr smoothed landscape for the file merging 
+% close together peaks of high rsqr values into dopamine "instances". Only instances that pass a liberal threshold 
+% when smoothed and a conservative threshold unsmoothed are returned as purative dopamine events. .
+% 
+% Inputs
+%           all_roh:     r values output from auto_cv_match
+%           all_bg_scan: 2×n matrix of combinations of background and scan numbers corisponding to the same 
+%                        all_roh r value, also output from auto_cv_match
+%
+%           threshold.   (data structure containing threshold params
+%                        cons      - conservative rsqr threshold (i.e. 0.75)
+%                        lib       - liberal rsqr threshold      (i.e. 0.7)
+%                        smoothing - number of points to smooth landscape   
+%
+%           visualise_matches: debugging mode to plot raw and smoothed rsqr
+%                              landscapes with dopamine instances shown
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin < 4
-    TTL = [];
+    visualise_matches = 0;
 end
 
 index = sign(all_roh);
@@ -20,8 +43,6 @@ match_matrix = rsqr_landscape(all_rsq, all_bg_scan);
 % 2) is it part of an "instance" of dopamine
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-
 [d1_landscape, bg] = max(match_matrix);
 smoothed_landscape = smooth(d1_landscape,threshold.smoothing);
 peaks = (smoothed_landscape >= threshold.lib);
@@ -32,6 +53,7 @@ peak_end = find(peak_diff == -1);
 peak_start_temp = peak_start-1;
 peak_start_temp(peak_start_temp < 1) = 1;
 peak_end_temp = peak_end;
+
 %for each "dopamine event"
 for k = 1:length(peak_start)-1
     
@@ -63,8 +85,7 @@ da((da(:,3)==-1),:) = [];
 da_bg_scan = da(:, [5,4]);
 da_instance = da(:,1:3);
 %debugging
-visualise_landscape = 1;
-if visualise_landscape
+if visualise_matches
     
     figure    
     subplot(2,1,1)
