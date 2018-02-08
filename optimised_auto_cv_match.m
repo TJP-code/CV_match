@@ -1,5 +1,5 @@
 function [all_roh,all_bg_scan,cv_vals] = optimised_auto_cv_match(tarheel_data, params, cv_template, bg_scan_dist, timeinterval)
-%function [cv_matches] = auto_cv_match(tarheel_data, params, cv_template, bg_scan_dist, timeinterval)
+%function [all_roh,all_bg_scan,cv_vals] = optimised_auto_cv_match(tarheel_data, params, cv_template, bg_scan_dist, timeinterval)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Auto CV match
@@ -42,6 +42,9 @@ elseif ~isempty(bg_scan_dist) %if you provide a bg_scan_dist i.e. regular distan
 end
 if nargin < 6
     timeinterval = [];
+end
+if ~isfield(params,'prog_bar') || isempty(params.prog_bar)
+    params.prog_bar = 1;
 end
 if ~isfield(params,'bg_size') || isempty(params.bg_size)
     params.bg_size = 10;
