@@ -1,4 +1,4 @@
-function [da_instance, da_bg_scan] = find_dopamine_instances(all_roh, all_bg_scan, threshold, visualise_matches)
+function [da_instance, da_bg_scan, match_matrix] = find_dopamine_instances(all_roh, all_bg_scan, threshold, visualise_matches)
 %function [da_instance, da_bg_scan] = find_dopamine_instances(all_roh, all_bg_scan, threshold, visualise_matches)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -30,6 +30,8 @@ end
 index = sign(all_roh);
 r_sqr = all_roh.^2;
 all_rsq = r_sqr.*index;
+da_instance = [];
+da_bg_scan = [];
 
 %old method
 %cv_matches_sig = find_rsqr_vals(all_rsq, all_bg_scan, TTL, threshold.cons);
@@ -81,10 +83,12 @@ for j = 1:length(peak_start_temp)
     end
 end
 
-if ~isempty(peak_start)
+if  ~isempty(peak_start)
     da((da(:,3)==-1),:) = [];
-    da_bg_scan = da(:, [5,4]);
-    da_instance = da(:,1:3);
+    if ~isempty(da)
+        da_bg_scan = da(:, [5,4]);
+        da_instance = da(:,1:3);
+    end
 
     %debugging
     if visualise_matches
@@ -97,14 +101,20 @@ if ~isempty(peak_start)
 
         plot(peak_start_temp,d1_landscape(peak_start_temp),'go')
         plot(peak_end_temp,d1_landscape(peak_end_temp),'rx')
-        plot(da(:,4), da(:,3),'bo')
+        try
+            plot(da(:,4), da(:,3),'bo')
+        catch
+        end
         subplot(2,1,2)
         hold on
         plot(smoothed_landscape,'k-o')
         plot(threshold.lib*ones(size(match_matrix,2)),'r')
         plot(peak_start_temp,smoothed_landscape(peak_start_temp),'go')
         plot(peak_end_temp,smoothed_landscape(peak_end_temp),'rx')
-        plot(da(:,4), smoothed_landscape(da(:,4)),'bo')
+        try
+            plot(da(:,4), smoothed_landscape(da(:,4)),'bo')
+        catch
+        end
 
         figure
         match_matrix(match_matrix < 0) = 0;
@@ -125,8 +135,6 @@ else
         plot(smoothed_landscape,'k-o')
         plot(threshold.lib*ones(size(match_matrix,2)),'r')
     end
-        da_instance = [];
-        da_bg_scan = [];
     
 end
 

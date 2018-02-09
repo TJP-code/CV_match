@@ -17,6 +17,22 @@ fig_title = sprintf('%s file overview',title_text);
 newStr = strrep(fig_title,'_',' ');
 suptitle(newStr) 
 plot_fcv_cv_it_TTL(processed_data, ts, TTLs,point_number)
+    % Construct a questdlg with three options
+    choice = questdlg('Would you like a dessert?', ...
+    'Dessert Menu', ...
+    'Ice cream','Cake','No thank you','No thank you');
+    % Handle response
+    switch choice
+    case 'Ice cream'
+        disp([choice ' coming right up.'])
+        dessert = 1;
+    case 'Cake'
+        disp([choice ' coming right up.'])
+        dessert = 2;
+    case 'No thank you'
+        disp('I''ll bring you your check.')
+        dessert = 0;
+    end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot each putative da event
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -36,6 +52,23 @@ for i = 1:size(match_bg_scan,1)
     newStr = strrep(fig_title,'_',' ');
     suptitle(newStr) 
     plot_fcv_cv_it_TTL(processed_data(:,winstart:winend), ts(winstart:winend), TTLs(winstart:winend,:),point_number, match_bg_scan(i,:)-winstart)
+    
+    % Construct a questdlg with three options
+    choice = questdlg('Would you like a dessert?', ...
+    'Dessert Menu', ...
+    'Ice cream','Cake','No thank you','No thank you');
+    % Handle response
+    switch choice
+    case 'Ice cream'
+        disp([choice ' coming right up.'])
+        dessert = 1;
+    case 'Cake'
+        disp([choice ' coming right up.'])
+        dessert = 2;
+    case 'No thank you'
+        disp('I''ll bring you your check.')
+        dessert = 0;
+    end
 end
 
 function plot_fcv_cv_it_TTL(fcv_data, ts, TTLs,point_number, match_bg_scan)
@@ -46,7 +79,7 @@ end
 
 fcv_IT = fcv_data(point_number,:);
 
-subplot(3,3,1:6); 
+subplot(4,4,[1:3,5:7,9:11]); 
 if ~isempty(match_bg_scan)
     lines.point_number = point_number;
     lines.scan_number = match_bg_scan(2);
@@ -54,17 +87,21 @@ if ~isempty(match_bg_scan)
 else
     lines = [];
 end
-plot_fcvdata(fcv_data, ts, lines);
-colorbar
+h = plot_fcvdata(fcv_data, ts, lines);
+originalSize1 = get(gca, 'Position');
+colorbar('westoutside')
+set(gca, 'Position', originalSize1);
 %plot it and cv
 if ~isempty(match_bg_scan)
-    subplot(3,3,8); 
+    subplot(4,4,4); 
     fcv_CV = fcv_data(:,match_bg_scan(2));
-    plot(fcv_CV);
+    %two channels
+    voltage = [-0.3932:0.0068:1.3,(1.3-0.0068):-0.0068:-0.4];
+    plot(voltage,fcv_CV);
     title('Cyclic Voltammogram');xlabel('Waveform Point Number');ylabel('Current (nA)')
-    subplot(3,3,7); 
+    subplot(4,4,13:15); 
 else
-    subplot(3,3,7:8);
+    subplot(4,4,13:15);
 end
 
 plot(ts, fcv_IT)
@@ -73,10 +110,9 @@ xlim([ts(1),max(ts)]);
 
 %plot ttls
   if ~isempty(TTLs)
-    subplot(3,3,9);
+    subplot(4,4,[12,16]);
     plot_TTLs(double(TTLs),ts);
     ylim([0,size(TTLs, 2)+1]);
 end
 
-  pause
-close all
+
