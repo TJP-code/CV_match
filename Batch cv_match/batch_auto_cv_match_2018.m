@@ -14,8 +14,8 @@ no_of_channels = 2; %should be metadata
 gluA1_fcv_path = 'C:\Data\GluA1 FCV\GluA1 Data\003\';
 
 cvmatch = load('C:\Users\tjahansprice\Documents\GitHub\CV_match\Chemometrics\cv_match');
-cv_template = cvmatch.cv_match;
-visualise_matches = 1;
+cv_template = cvmatch.cv_match(:,1:7);
+visualise_matches = 0;
 %get folders list
 folder_list = dir([gluA1_fcv_path]);
 
@@ -25,13 +25,14 @@ threshold.smoothing = 5;
 
 fcvwindowsize = 20;%window to look around fcv data in number of scans
 point_number = 150;
+min_file_length = 300;
 
 %from folder with animal names: for each animal
 for i=3:length(folder_list)
     %change into folder
     days = dir([gluA1_fcv_path '\' folder_list(i).name]);
     %for each day
-    for j = 3:length(days)
+    for j = 4:length(days)
         %get the test files and run cv_match
         path = ['\' folder_list(i).name '\' days(j).name];
         files_list = dir([gluA1_fcv_path path]);
@@ -48,7 +49,7 @@ for i=3:length(folder_list)
             varname = matlab.lang.makeValidName([folder_list(i).name '_' days(j).name]);
             GLRA_FCV.(varname).name = folder_list(i).name;
             GLRA_FCV.(varname).date = days(j).name;
-            GLRA_FCV.(varname).number_of_channels = no_of_channels;
+            GLRA_FCV.(varname).number_of_channels = no_of_channels; %try and work out from header
             GLRA_FCV.(varname).KO = 0; %get this from the excell file name/data structure
             GLRA_FCV.(varname).male = 1;
             varname %to show progress
@@ -66,7 +67,7 @@ for i=3:length(folder_list)
                     temp.ch1_cv_matches = [];
                 end
                 %run cv_match
-                if ~isempty(temp.ts)
+                if ~isempty(temp.ts) || length(temp.ts < min_file_length)
                     [fcv_header, ch1_fcv_data, ch0_fcv_data] = tarheel_read([gluA1_fcv_path temp.cv_test_file],no_of_channels);
                     
                     [all_roh,all_bg_scan,~] = optimised_auto_cv_match(ch0_fcv_data, params, cv_template);

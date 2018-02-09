@@ -81,35 +81,54 @@ for j = 1:length(peak_start_temp)
     end
 end
 
-da((da(:,3)==-1),:) = [];
-da_bg_scan = da(:, [5,4]);
-da_instance = da(:,1:3);
-%debugging
-if visualise_matches
-    
-    figure    
-    subplot(2,1,1)
-    hold on
-    plot(d1_landscape,'k-o')
-    plot(threshold.cons*ones(size(match_matrix,2)),'r')
-    
-    plot(peak_start_temp,d1_landscape(peak_start_temp),'go')
-    plot(peak_end_temp,d1_landscape(peak_end_temp),'rx')
-    plot(da(:,4), da(:,3),'bo')
-    subplot(2,1,2)
-    hold on
-    plot(smoothed_landscape,'k-o')
-    plot(threshold.lib*ones(size(match_matrix,2)),'r')
-    plot(peak_start_temp,smoothed_landscape(peak_start_temp),'go')
-    plot(peak_end_temp,smoothed_landscape(peak_end_temp),'rx')
-    plot(da(:,4), smoothed_landscape(da(:,4)),'bo')
+if ~isempty(peak_start)
+    da((da(:,3)==-1),:) = [];
+    da_bg_scan = da(:, [5,4]);
+    da_instance = da(:,1:3);
 
-    figure
-    match_matrix(match_matrix < 0) = 0;
-    imagesc(rot90(match_matrix));
-    colorbar
+    %debugging
+    if visualise_matches
+
+        figure    
+        subplot(2,1,1)
+        hold on
+        plot(d1_landscape,'k-o')
+        plot(threshold.cons*ones(size(match_matrix,2)),'r')
+
+        plot(peak_start_temp,d1_landscape(peak_start_temp),'go')
+        plot(peak_end_temp,d1_landscape(peak_end_temp),'rx')
+        plot(da(:,4), da(:,3),'bo')
+        subplot(2,1,2)
+        hold on
+        plot(smoothed_landscape,'k-o')
+        plot(threshold.lib*ones(size(match_matrix,2)),'r')
+        plot(peak_start_temp,smoothed_landscape(peak_start_temp),'go')
+        plot(peak_end_temp,smoothed_landscape(peak_end_temp),'rx')
+        plot(da(:,4), smoothed_landscape(da(:,4)),'bo')
+
+        figure
+        match_matrix(match_matrix < 0) = 0;
+        imagesc(rot90(match_matrix));
+        colorbar
+    end
+else
+    %debugging
+    if visualise_matches
+
+        figure    
+        subplot(2,1,1)
+        hold on
+        plot(d1_landscape,'k-o')
+        plot(threshold.cons*ones(size(match_matrix,2)),'r')
+        subplot(2,1,2)
+        hold on
+        plot(smoothed_landscape,'k-o')
+        plot(threshold.lib*ones(size(match_matrix,2)),'r')
+    end
+        da_instance = [];
+        da_bg_scan = [];
+    
 end
-
 
 
 function cv_matches = find_rsqr_vals(rsq, bg_scan, TTL, rsq_val)

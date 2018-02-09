@@ -12,10 +12,11 @@ params.sample_freq = 58820;
 % Plot whole session
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 [processed_data] = process_raw_fcv_data(fcv_data);
-plot_fcv_cv_it_TTL(processed_data, ts, TTLs,point_number)
+figure
 fig_title = sprintf('%s file overview',title_text);
 newStr = strrep(fig_title,'_',' ');
 suptitle(newStr) 
+plot_fcv_cv_it_TTL(processed_data, ts, TTLs,point_number)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot each putative da event
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -31,7 +32,7 @@ for i = 1:size(match_bg_scan,1)
     
     [processed_data] = process_raw_fcv_data(fcv_data, params);
     figure
-    fig_title = sprintf('%s \n rsqr = %d putative match %d of %d',title_text,da_instance(i,3),i,size(match_bg_scan,1));
+    fig_title = sprintf('%s \n rsqr = %d putative match %d of %d',title_text,da_instance(i,3)*100,i,size(match_bg_scan,1));
     newStr = strrep(fig_title,'_',' ');
     suptitle(newStr) 
     plot_fcv_cv_it_TTL(processed_data(:,winstart:winend), ts(winstart:winend), TTLs(winstart:winend,:),point_number, match_bg_scan(i,:)-winstart)
@@ -54,7 +55,7 @@ else
     lines = [];
 end
 plot_fcvdata(fcv_data, ts, lines);
-
+colorbar
 %plot it and cv
 if ~isempty(match_bg_scan)
     subplot(3,3,8); 
@@ -66,7 +67,7 @@ else
     subplot(3,3,7:8);
 end
 
-      plot(ts, fcv_IT)
+plot(ts, fcv_IT)
 title('Current Vs Time');xlabel('Time');ylabel('Current (nA)')
 xlim([ts(1),max(ts)]);
 
