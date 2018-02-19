@@ -7,7 +7,7 @@ if nargin < 5
 end
 params.filt_freq = 2000; %we found 2000Hz for 2 channel data gave a smoother CV
 params.sample_freq = 58820; 
-
+FigPos = [500,25,267,70];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot whole session
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -17,21 +17,20 @@ fig_title = sprintf('%s file overview',title_text);
 newStr = strrep(fig_title,'_',' ');
 suptitle(newStr) 
 plot_fcv_cv_it_TTL(processed_data, ts, TTLs,point_number)
-    % Construct a questdlg with three options
-    choice = questdlg('Would you like a dessert?', ...
-    'Dessert Menu', ...
-    'Ice cream','Cake','No thank you','No thank you');
+set(gcf, 'Position', [100, 125, 1700, 1000]);
+ %Construct a questdlg with three options
+    choice = tjp_questdlg('Is this Dopamine?', ...
+    'CV_matching','Yes, defo', ...
+    'None-amine','This doesnt look like anything to me','This doesnt look like anything to me',...
+    FigPos);
     % Handle response
     switch choice
-    case 'Ice cream'
-        disp([choice ' coming right up.'])
-        dessert = 1;
-    case 'Cake'
-        disp([choice ' coming right up.'])
-        dessert = 2;
-    case 'No thank you'
-        disp('I''ll bring you your check.')
-        dessert = 0;
+    case 'Yes, defo'
+        dopamine = 1;
+    case 'None-amine'
+        dopamine = 0;
+    case 'This doesnt look like anything to me'
+        dopamine = -1;
     end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot each putative da event
@@ -52,22 +51,21 @@ for i = 1:size(match_bg_scan,1)
     newStr = strrep(fig_title,'_',' ');
     suptitle(newStr) 
     plot_fcv_cv_it_TTL(processed_data(:,winstart:winend), ts(winstart:winend), TTLs(winstart:winend,:),point_number, match_bg_scan(i,:)-winstart)
-    
-    % Construct a questdlg with three options
-    choice = questdlg('Would you like a dessert?', ...
-    'Dessert Menu', ...
-    'Ice cream','Cake','No thank you','No thank you');
+
+    set(gcf, 'Position', [100, 125, 1700, 1000]);
+    %Construct a questdlg with three options
+    choice = tjp_questdlg('Is this Dopamine?', ...
+    'CV_matching','Yes, defo', ...
+    'None-amine','This doesnt look like anything to me','This doesnt look like anything to me',...
+    FigPos);
     % Handle response
     switch choice
-    case 'Ice cream'
-        disp([choice ' coming right up.'])
-        dessert = 1;
-    case 'Cake'
-        disp([choice ' coming right up.'])
-        dessert = 2;
-    case 'No thank you'
-        disp('I''ll bring you your check.')
-        dessert = 0;
+    case 'Yes, defo'
+        dopamine = 1;
+    case 'None-amine'
+        dopamine = 0;
+    case 'This doesnt look like anything to me'
+        dopamine = -1;
     end
 end
 
@@ -93,12 +91,13 @@ colorbar('westoutside')
 set(gca, 'Position', originalSize1);
 %plot it and cv
 if ~isempty(match_bg_scan)
-    subplot(4,4,4); 
+    subplot(4,4,[4,8]); 
     fcv_CV = fcv_data(:,match_bg_scan(2));
     %two channels
     voltage = [-0.3932:0.0068:1.3,(1.3-0.0068):-0.0068:-0.4];
     plot(voltage,fcv_CV);
     title('Cyclic Voltammogram');xlabel('Waveform Point Number');ylabel('Current (nA)')
+    xlim([voltage(1),max(voltage)]);
     subplot(4,4,13:15); 
 else
     subplot(4,4,13:15);

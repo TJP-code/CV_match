@@ -28,7 +28,7 @@ point_number = 150;
 min_file_length = 300;
 
 %from folder with animal names: for each animal
-for i=4:length(folder_list)
+for i=6:length(folder_list)
     %change into folder
     days = dir([gluA1_fcv_path '\' folder_list(i).name]);
     %for each day
