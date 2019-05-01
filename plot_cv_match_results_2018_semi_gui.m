@@ -1,10 +1,5 @@
-function [dopamine] = plot_cv_match_results_2018(fcv_data, da_instance, match_bg_scan,ts, TTLs,title_text, windowsize, point_number, match_matrix)
-
-%bg_scan is the actual DA points that give DA
-%instance is start and end index of da - only need this to set limits on x axis
-dopamine = zeros(size(match_bg_scan,1));
-
-if nargin < 4 || isempty(ts)
+function [dopamine] = plot_cv_match_results_2018_semi_gui(fcv_data, da_instance, match_bg_scan,ts, TTLs,title_text, windowsize, point_number, match_matrix)
+if nargin < 4
     ts = [0:0.1:size(fcv_data,2)/10-0.1];
 end
 if nargin < 5
@@ -15,46 +10,72 @@ if nargin < 9
     match_matrix = [];
 end
 
-dopamine = [];
+dopamine = zeros(size(da_instance,2),1);
+dopamine = dopamine-1;
+
+global exit
+global instance_no
+exit = 0;
+instance_no = 0; 
+
 params.filt_freq = 2000; %we found 2000Hz for 2 channel data gave a smoother CV
 params.sample_freq = 58820; 
-FigPos = [900,25,267,70];
+FigPos = [500,25,267,70];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot whole session
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 [processed_data] = process_raw_fcv_data(fcv_data);
+
 figure
-fig_title = sprintf('%s file overview',title_text);
-newStr = strrep(fig_title,'_',' ');
-suptitle(newStr) 
-overview = 1;
-plot_fcv_cv_it_TTL(processed_data, ts, TTLs,point_number, [],[1, length(ts)], match_matrix, match_bg_scan, overview,[])
-set(gcf, 'Position', [100, 125, 1700, 1000]);
- 
-choice = tjp_questdlg('Would you like to cv match?', ...
-    'CV_matching','Yes', ...
-    'Skip','Exit','Yes',...
-    FigPos);
-    % Handle response
-    switch choice
-    case 'Yes'
-        overview = 0;
-    case 'Skip'
-        overview = -1;
-    case 'Exit'
-        dopamine = -2;
-        return
-    end
+show_da_instance(instance_no, processed_data, da_instance, match_bg_scan,ts, TTLs,title_text, windowsize, point_number, match_matrix)
 
 
+exit_butt=uicontrol;
+exit_butt.String = 'Exit';
+exit_butt.Callback = @exitButtonPushed;
+exit_butt.Position = [20 75 60 20];
+
+next_butt=uicontrol;
+next_butt.String = 'Next';
+next_butt.Callback = @nextButtonPushed;
+%next_butt.position
 
 
+%w = waitforbuttonpress;
+while exit ~= 1 
+     
+        w = waitforbuttonpress;
+   
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Plot each putative da event
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if overview == 0
-for i = 1:size(match_bg_scan,1)
+end
+
+function exitButtonPushed(src,event)
+    global exit
+    exit = 1;
+    %exit_butt.String = 'Exiting';
+
+function nextButtonPushed(src,event)
+    %clf
+    global instance_no
+    instance_no = instance_no+1;
+    show_da_instance(instance_no, fcv_data, da_instance, match_bg_scan,ts, TTLs,title_text, windowsize, point_number, match_matrix)
+    
+function show_da_instance(i, fcv_data, da_instance, match_bg_scan,ts, TTLs,title_text, windowsize, point_number, match_matrix)
+
+if i == 0
+    
+    fig_title = sprintf('%s file overview',title_text);
+    newStr = strrep(fig_title,'_',' ');
+    suptitle(newStr) 
+    overview = 1;
+    plot_fcv_cv_it_TTL(fcv_data, ts, TTLs,point_number, [],[1, length(ts)], match_matrix, da_instance, overview)
+    set(gcf, 'Position', [100, 125, 1700, 1000]);
+
+else
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Plot each putative da event
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
     winstart = da_instance(i,1)-windowsize;
     if winstart >  match_bg_scan(i,1); winstart = (match_bg_scan(i,1)-windowsize); end;
     if winstart < 1; winstart = 1; end;
@@ -66,20 +87,17 @@ for i = 1:size(match_bg_scan,1)
     
     [processed_data] = process_raw_fcv_data(fcv_data, params);
     figure
-    fig_title = sprintf('%s rsqr = %d putative match %d of %d',title_text,da_instance(i,3)*100,i,size(match_bg_scan,1));
+    fig_title = sprintf('%s \n rsqr = %d putative match %d of %d',title_text,da_instance(i,3)*100,i,size(match_bg_scan,1));
     newStr = strrep(fig_title,'_',' ');
     suptitle(newStr) 
-    
-    [clim] = scale_fcv_colorbar(processed_data(:,winstart:winend));
-    
-    plot_fcv_cv_it_TTL(processed_data, ts, TTLs,point_number, match_bg_scan(i,:), [winstart, winend],match_matrix, match_bg_scan, overview, clim);
+    plot_fcv_cv_it_TTL(processed_data, ts, TTLs,point_number, match_bg_scan(i,:), [winstart, winend],match_matrix)
 
     set(gcf, 'Position', [100, 125, 1700, 1000]);
-    %pause
+    pause
     %Construct a questdlg with three options
     choice = tjp_questdlg('Is this Dopamine?', ...
     'CV_matching','Yes', ...
-    'No','Skip Animal','No',...
+    'No','Not Sure','Not Sure',...
     FigPos);
     % Handle response
     switch choice
@@ -87,15 +105,14 @@ for i = 1:size(match_bg_scan,1)
         dopamine(i) = 1;
     case 'No'
         dopamine(i) = 0;
-    case 'Skip Animal'
-        return
+    case 'Not Sure'
+        dopamine(i) = -1;
     end
+
 end
-end
 
 
-
-function plot_fcv_cv_it_TTL(fcv_data, ts, TTLs,point_number, match_bg_scan, window, match_matrix, all_matches, overview, clim)
+function plot_fcv_cv_it_TTL(fcv_data, ts, TTLs,point_number, match_bg_scan, window, match_matrix, da_instance, overview)
 
 if nargin < 5
     match_bg_scan = [];
@@ -114,11 +131,7 @@ if ~isempty(match_bg_scan)
 else
     lines = [];
 end
-if ~isempty(clim)
-    h = plot_fcvdata(fcv_data, ts, lines,clim); 
-else
-    h = plot_fcvdata(fcv_data, ts, lines); 
-end
+h = plot_fcvdata(fcv_data, ts, lines); 
 
 xlim([ts(window(1)), ts(window(2))]);
 ax = gca;
@@ -155,28 +168,19 @@ ax.FontSize = 8;
 
 %plot all da instances
 hold on
-if ~isempty(match_bg_scan)
-    plot(ts(all_matches(:,2)),fcv_IT(all_matches(:,2)) ,'ko','MarkerSize',10,'MarkerFaceColor',[.6 .6 .6])
-    plot(ts(match_bg_scan(2)),fcv_IT(match_bg_scan(2)) ,'bo','MarkerSize',10,'MarkerFaceColor',[.6 .6 1])    
-    
-else
-    try
-    plot(ts(all_matches(:,2)),fcv_IT(all_matches(:,2)) ,'bo','MarkerSize',10,'MarkerFaceColor',[.6 .6 1])
-    catch
-    end
-end
+plot(ts(da_instance(:,2)),fcv_IT(da_instance(:,2)) ,'bo','MarkerSize',10,'MarkerFaceColor',[.6 .6 1])
+hold off    
 
 %plot ttls
-if ~isempty(TTLs)&& ~strcmp(TTLs, 'couldnt load TTL')
+if ~isempty(TTLs)
     subplot(12,12,[106:108,118:120,130:132,142:144]);
     plot_TTLs(double(TTLs),ts);
-    set(gca,'ytick',[])
     ylim([0,size(TTLs, 2)+1]);
     xlim([ts(window(1)), ts(window(2))]);
     ax = gca;
     ax.FontSize = 8; 
-    title('');xlabel('TTL Times(s)');
-   
+    title('');xlim([ts(1),max(ts)]);xlabel('TTL Times(s)');
+    set(gca,'ytick',[])
 end
 
 if ~isempty(match_matrix)
@@ -195,15 +199,13 @@ if ~isempty(match_matrix)
     ax.FontSize = 8; 
     set(gca,'xtick',[])
     set(gca,'ytick',[])
-
-    hold on
-    try
-    plot(all_matches(:,2), all_matches(:,1),'ko','MarkerSize',10,'MarkerFaceColor',[.6 .6 .6])
-    catch
-    end
     if ~isempty(match_bg_scan)
         hold on
-        plot(match_bg_scan(2), match_bg_scan(1),'ko','MarkerSize',10,'MarkerFaceColor',[1 .6 .6])
+        plot(match_bg_scan(2), match_bg_scan(1),'ko','MarkerSize',10,'MarkerFaceColor',[.6 .6 .6])
     end
-
+    if overview
+        hold on
+        plot(da_instance(:,2), da_instance(:,1),'ko','MarkerSize',10,'MarkerFaceColor',[.6 .6 .6])
+    end
+    hold off
 end

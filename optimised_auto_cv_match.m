@@ -59,8 +59,9 @@ samples = [1:number_of_samples]';
 bg_template = ones(number_of_samples,1);
 RHO = zeros(number_of_samples,size(cv_template,2));
 
+images = {'progressbar1.jpg'};
 if params.prog_bar
-    cv_progressbar(0, 0)
+    progressbar_v2(0, 0, images, 'Auto cv matching')
 end
 
 %\/ test with scan dist why i did this \/
@@ -72,7 +73,7 @@ params.bg_pos = 1;
 %for each background
 for i = 1:last_sample
     if  params.prog_bar
-        cv_progressbar(i/last_sample,0);
+        progressbar_v2(i/last_sample,0,images, 'Auto cv matching');
     end
     params.bg_pos = i;
     

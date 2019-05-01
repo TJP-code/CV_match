@@ -21,6 +21,11 @@ function [da_instance, da_bg_scan, match_matrix] = find_dopamine_instances(all_r
 %           visualise_matches: debugging mode to plot raw and smoothed rsqr
 %                              landscapes with dopamine instances shown
 %
+% Outputs
+%           da_instance: [start index, end index, r² value]
+%           da_bg_scan: [index of r² val, bg scan no]
+%           match_matrix: [bg_scan×scan_no]
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin < 4
@@ -39,10 +44,12 @@ da_bg_scan = [];
 match_matrix = rsqr_landscape(all_rsq, all_bg_scan);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% For each time that passes conservative threshold
-% 1) does it have a smoothed value greater than liberal threshold 
+% finding Da instances
+% 1) find smoothed values greater than liberal threshold 
 % (is it surrounded by other high rsqr val neighbours and therefore not noise)
 % 2) is it part of an "instance" of dopamine
+%
+% 3) does part of it cross the conservative threshold
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 [d1_landscape, bg] = max(match_matrix);
@@ -72,7 +79,13 @@ peak_end_temp(peak_end_temp==-1) = [];
 for j = 1:length(peak_start_temp)
     
     da(j,1) = peak_start_temp(j);
-    da(j,2) = peak_end_temp(j);
+    if peak_start(j) == size(match_matrix,1)
+        da(j,2) = peak_start(j);
+        peak_end_temp(j) = peak_start(j);
+    else
+        da(j,2) = peak_end_temp(j);
+    end
+    
     [peak_val,val_index] = max(d1_landscape(peak_start_temp(j):peak_end_temp(j)));  
     if peak_val > threshold.cons
         da(j,3) = peak_val;
@@ -93,33 +106,53 @@ if  ~isempty(peak_start)
     %debugging
     if visualise_matches
 
-        figure    
-        subplot(2,1,1)
-        hold on
-        plot(d1_landscape,'k-o')
-        plot(threshold.cons*ones(size(match_matrix,2)),'r')
+%         figure    
+%         subplot(2,1,1)
+%         hold on
+%         plot(d1_landscape,'k-o','MarkerSize',2,'MarkerFaceColor',[.1 .1 .1])
+%         plot(threshold.cons*ones(size(match_matrix,2)),'r')
+% 
+%         %color instances in
+%         for k = 1:length(peak_start_temp)
+%             plot(peak_start_temp(k):peak_end_temp(k),d1_landscape(peak_start_temp(k):peak_end_temp(k)),'b','LineWidth',2);
+%         end
+%         
+%         plot(peak_start_temp,d1_landscape(peak_start_temp),'go','MarkerSize',10,'MarkerFaceColor',[.6 1 .6])
+%         plot(peak_end_temp,d1_landscape(peak_end_temp),'ro','MarkerSize',10,'MarkerFaceColor',[1 .6 .6])
+%         
+%         
+%         try
+%             plot(da(:,4), da(:,3),'bo','MarkerSize',10,'MarkerFaceColor',[.6 .6 1])
+%         catch
+%         end
+%         subplot(2,1,2)
+%         hold on
+%         plot(smoothed_landscape,'k-o','MarkerSize',2,'MarkerFaceColor',[.1 .1 .1])
+%         plot(threshold.lib*ones(size(match_matrix,2)),'r')
+%         
+%         for k = 1:length(peak_start_temp)
+%             plot(peak_start_temp(k):peak_end_temp(k),smoothed_landscape(peak_start_temp(k):peak_end_temp(k)),'b','LineWidth',2);
+%         end
+%         
+%         plot(peak_start_temp,smoothed_landscape(peak_start_temp),'go','MarkerSize',10,'MarkerFaceColor',[.6 1 .6])
+%         plot(peak_end_temp,smoothed_landscape(peak_end_temp),'ro','MarkerSize',10,'MarkerFaceColor',[1 .6 .6])
+%                 
+%         try
+%             plot(da(:,4), smoothed_landscape(da(:,4)),'bo','MarkerSize',10,'MarkerFaceColor',[.6 .6 1])
+%         catch
+%         end
+% 
+%         figure
+%         match_matrix(match_matrix < 0) = 0;
+%         imagesc((match_matrix));
+%         ax = gca;
+%         ax.YDir = 'normal';
+%         colorbar
+%         xlabel('Scan position')
+%         ylabel('Background position')
 
-        plot(peak_start_temp,d1_landscape(peak_start_temp),'go')
-        plot(peak_end_temp,d1_landscape(peak_end_temp),'rx')
-        try
-            plot(da(:,4), da(:,3),'bo')
-        catch
-        end
-        subplot(2,1,2)
-        hold on
-        plot(smoothed_landscape,'k-o')
-        plot(threshold.lib*ones(size(match_matrix,2)),'r')
-        plot(peak_start_temp,smoothed_landscape(peak_start_temp),'go')
-        plot(peak_end_temp,smoothed_landscape(peak_end_temp),'rx')
-        try
-            plot(da(:,4), smoothed_landscape(da(:,4)),'bo')
-        catch
-        end
+         plot_da_instances(da_instance, da_bg_scan, match_matrix, threshold)
 
-        figure
-        match_matrix(match_matrix < 0) = 0;
-        imagesc(rot90(match_matrix));
-        colorbar
     end
 else
     %debugging
@@ -128,12 +161,13 @@ else
         figure    
         subplot(2,1,1)
         hold on
-        plot(d1_landscape,'k-o')
+        plot(d1_landscape,'k-o','MarkerSize',2,'MarkerFaceColor',[.1 .1 .1])
         plot(threshold.cons*ones(size(match_matrix,2)),'r')
         subplot(2,1,2)
         hold on
-        plot(smoothed_landscape,'k-o')
+        plot(smoothed_landscape,'k-o','MarkerSize',2,'MarkerFaceColor',[.1 .1 .1])
         plot(threshold.lib*ones(size(match_matrix,2)),'r')
+        
     end
     
 end
