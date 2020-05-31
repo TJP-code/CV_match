@@ -76,6 +76,11 @@ end
 peak_start_temp(peak_start_temp==-1) = [];
 peak_end_temp(peak_end_temp==-1) = [];
 
+%incase a peak starts right at the end
+if(length(peak_start_temp) == length (peak_end_temp)+1)
+    peak_end_temp(length(peak_start_temp)) = peak_start_temp(length(peak_start_temp));
+end
+
 for j = 1:length(peak_start_temp)
     
     da(j,1) = peak_start_temp(j);

@@ -9,13 +9,7 @@ smoothed_landscape = smooth(d1_landscape,threshold.smoothing);
 if  ~isempty(da_instance)
     instance_start = da_instance(:,1);
     instance_end = da_instance(:,2);
-    
-    figure    
-    subplot(2,1,1)
-    hold on
-    plot(d1_landscape,'k-o','MarkerSize',2,'MarkerFaceColor',[.1 .1 .1])
-    plot(threshold.cons*ones(size(match_matrix,2)),'r')
-    
+        
     figure    
     subplot(2,1,1)
     hold on

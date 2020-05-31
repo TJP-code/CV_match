@@ -2,8 +2,8 @@ function [dopamine] = plot_cv_match_results_2018(fcv_data, da_instance, match_bg
 
 %bg_scan is the actual DA points that give DA
 %instance is start and end index of da - only need this to set limits on x axis
-dopamine = zeros(size(match_bg_scan,1));
-
+dopamine = zeros(size(match_bg_scan,1),1);
+dopamine = dopamine - 1;
 if nargin < 4 || isempty(ts)
     ts = [0:0.1:size(fcv_data,2)/10-0.1];
 end
@@ -15,7 +15,6 @@ if nargin < 9
     match_matrix = [];
 end
 
-dopamine = [];
 params.filt_freq = 2000; %we found 2000Hz for 2 channel data gave a smoother CV
 params.sample_freq = 58820; 
 FigPos = [900,25,267,70];

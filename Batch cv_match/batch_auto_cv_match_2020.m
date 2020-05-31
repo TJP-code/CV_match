@@ -11,13 +11,13 @@ params.filt_freq = 2000; %we found 2000Hz for 2 channel data gave a smoother CV
 params.sample_freq = 58820; 
 
 no_of_channels = 2; %should be metadata
-gluA1_fcv_path = 'F:\FCV\MK001\';
+mk_fcv_path = 'E:\Oxford Voltametry data\MK002 - for cv matching';
 
-cvmatch = load('C:\Users\tjahansprice\Documents\GitHub\CV_match\Chemometrics\cv_match');
+cvmatch = load('F:\Documents\GitHub\CV_match\Chemometrics\cv_match');
 cv_template = cvmatch.cv_match(:,1:7);
 visualise_matches = 0;
 %get folders list
-folder_list = dir([gluA1_fcv_path]);
+folder_list = dir([mk_fcv_path]);
 
 threshold.cons = 0.75;
 threshold.lib = 0.7;
@@ -27,17 +27,15 @@ fcvwindowsize = 20;%window to look around fcv data in number of scans
 point_number = 150;
 min_file_length = 300;
 
-%i = 10 j = 4 l = 2 
-
 %from folder with animal names: for each animal
-for i=3:length(folder_list)
+for i=10:length(folder_list) %3
     %change into folder
-    days = dir([gluA1_fcv_path '\' folder_list(i).name]);
+    days = dir([mk_fcv_path '\' folder_list(i).name]);
     %for each day
     for j = 3:length(days)
         %get the test files and run cv_match
         path = ['\' folder_list(i).name '\' days(j).name];
-        files_list = dir([gluA1_fcv_path path]);
+        files_list = dir([mk_fcv_path path]);
         files = {files_list.name};
         %does the filename contain 'light' or 'sucrose'
         %delete folder and txt files
@@ -49,11 +47,11 @@ for i=3:length(folder_list)
         %if there are any data files, take pairs of txt and bin and run cv match on them
         if ~isempty(myindices)
             varname = matlab.lang.makeValidName([folder_list(i).name '_' days(j).name]);
-            GLRA_FCV.(varname).name = folder_list(i).name;
-            GLRA_FCV.(varname).date = days(j).name;
-            GLRA_FCV.(varname).number_of_channels = no_of_channels; %try and work out from header
-            GLRA_FCV.(varname).KO = 0; %get this from the excell file name/data structure
-            GLRA_FCV.(varname).male = 1;
+            MK_FCV.(varname).name = folder_list(i).name;
+            MK_FCV.(varname).date = days(j).name;
+            MK_FCV.(varname).number_of_channels = no_of_channels; %try and work out from header
+            MK_FCV.(varname).MK = 0; %get this from the excell file name/data structure
+            MK_FCV.(varname).male = 1;
             
             varname %to show progress
             for l = 1:length(myindices)
@@ -64,7 +62,7 @@ for i=3:length(folder_list)
                 temp.dio_test_file = [temp.cv_test_file '.txt'];
                 %load ttls
                 try
-                    [temp.ts,temp.TTLs] = TTLsRead([gluA1_fcv_path temp.dio_test_file]);                    
+                    [temp.ts,temp.TTLs] = TTLsRead([mk_fcv_path temp.dio_test_file]);                    
                 catch
                     temp.ts = [];
                     temp.TTLs = 'couldnt load TTL';
@@ -73,7 +71,7 @@ for i=3:length(folder_list)
                 end
                 %run cv_match
                 if ~isempty(temp.ts) || (length(temp.ts) < min_file_length)
-                    [fcv_header, ch1_fcv_data, ch0_fcv_data] = tarheel_read([gluA1_fcv_path temp.cv_test_file],no_of_channels);
+                    [fcv_header, ch0_fcv_data, ch1_fcv_data] = tarheel_read([mk_fcv_path temp.cv_test_file],no_of_channels); %this was the wrong way round, check any previous matches
                     
                     [all_roh,all_bg_scan,~] = optimised_auto_cv_match(ch0_fcv_data, params, cv_template);
                     [temp.ch0_da_instance, temp.ch0_da_bg_scan, temp.ch0_match_matrix] = find_dopamine_instances(all_roh, all_bg_scan, threshold, visualise_matches);
@@ -87,7 +85,7 @@ for i=3:length(folder_list)
                     
                 end
                 
-                GLRA_FCV.(varname).(testvarname) = temp;
+                MK_FCV.(varname).(testvarname) = temp;
                 temp = []; %reset temp
             end
         end
