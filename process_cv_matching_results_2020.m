@@ -21,10 +21,10 @@ cv_table = {'Name','Date','Knockout','Male','Recording','Channel','Background','
 % cv_data_path = 'F:\Documents\GitHub\CV_match\Batch cv_match\';
 % path = 'E:\Oxford Voltametry data\MK002 - for cv matching'; %fcv data path
 % load ([cv_data_path 'MK_cv_matching'])
-cv_data_path = 'E:\Oxford Voltametry data\FCV\MK001\';
-path = 'E:\Oxford Voltametry data\FCV\MK001'; %fcv data path
-load ([cv_data_path 'MK001_CV_match_data'])
-MK_FCV = GLRA_FCV
+cv_data_path = 'E:\Oxford Voltametry data\FCV\MK002\';
+path = 'E:\Oxford Voltametry data\FCV\MK002'; %fcv data path
+load ([cv_data_path 'mk_cv_matching'])
+%MK_FCV = GLRA_FCV
 
 days = fieldnames(MK_FCV);
 
@@ -38,7 +38,7 @@ threshold.smoothing = 5;
 %go through struct
 
 %for each day
-for i = 5:length(days)
+for i = 1:length(days)
     temp =  MK_FCV.(days{i});
     recordings = fieldnames(temp);
     name = temp.name;
